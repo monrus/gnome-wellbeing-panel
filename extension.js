@@ -2,8 +2,8 @@
  * Wellbeing Panel — индикатор экранного времени в верхней панели GNOME.
  *
  * Источник данных о времени — встроенный Wellbeing / Screen Time.
- * Логика чтения инкапсулирована в src/usageReader.js (пока заглушка,
- * см. комментарий там: нужно определить реальный источник данных).
+ * Логика чтения инкапсулирована в src/usageReader.js, разбор и подсчёт —
+ * в src/screenTime.js.
  */
 
 import GLib from 'gi://GLib';
@@ -16,7 +16,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
-import {UsageReader} from './src/usageReader.js';
+import {UsageReader, Status} from './src/usageReader.js';
 import {formatDuration} from './src/formatTime.js';
 
 const PLACEHOLDER = '—';
@@ -35,7 +35,7 @@ class WellbeingPanelButton extends PanelMenu.Button {
         });
         this.add_child(this._label);
 
-        this._statusItem = new PopupMenu.PopupMenuItem('Экранное время: —', {
+        this._statusItem = new PopupMenu.PopupMenuItem('Экранное время сегодня: —', {
             reactive: false,
         });
         this.menu.addMenuItem(this._statusItem);
@@ -52,19 +52,26 @@ class WellbeingPanelButton extends PanelMenu.Button {
 
     refresh() {
         let text = PLACEHOLDER;
+        let statusText = 'Экранное время сегодня: —';
+
         try {
-            const seconds = this._extension.reader.getTodayTotalSeconds();
-            if (seconds === 0)
-                text = formatDuration(0);
-            else if (seconds != null && seconds > 0)
+            const {status, seconds} = this._extension.reader.readToday();
+
+            if (status === Status.OK && seconds != null) {
                 text = formatDuration(seconds);
+                statusText = `Экранное время сегодня: ${text}`;
+            } else if (status === Status.DISABLED) {
+                statusText = 'Запись экранного времени выключена';
+            } else {
+                statusText = 'Нет данных об экранном времени';
+            }
         } catch (e) {
             logError(e, 'wellbeing-panel: не удалось прочитать данные');
         }
 
         const showText = this._extension.settings.get_boolean('show-text');
         this._label.set_text(showText ? text : ICON_GLYPH);
-        this._statusItem.label.set_text(`Экранное время: ${text}`);
+        this._statusItem.label.set_text(statusText);
     }
 });
 

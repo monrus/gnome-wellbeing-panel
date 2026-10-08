@@ -15,7 +15,7 @@ EXTENSION_DIR := $(EXTENSION_ROOT)/$(UUID)
 # Что попадает в поставку расширения.
 SOURCES := metadata.json extension.js prefs.js stylesheet.css src
 
-.PHONY: all build schemas install uninstall enable disable pack clean
+.PHONY: all build schemas test install uninstall enable disable pack clean
 
 all: build
 
@@ -23,6 +23,9 @@ build: schemas
 
 schemas:
 > glib-compile-schemas --strict $(SCHEMA_DIR)
+
+test:
+> gjs -m tests/screenTime.test.js
 
 install: build
 > rm -rf $(EXTENSION_DIR)

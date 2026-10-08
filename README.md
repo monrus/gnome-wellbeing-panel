@@ -3,9 +3,8 @@
 A GNOME Shell extension that shows today's screen time in the top panel,
 backed by the built-in **Wellbeing / Screen Time** data.
 
-> Status: scaffold (v0.1.0). Reading the data is not implemented yet — it is
-> currently a stub (see `src/usageReader.js`). The next step is to determine
-> where the built-in Wellbeing gets its data and wire it up.
+> Status: working (v0.1.0). The panel reads today's screen time directly from
+> GNOME's own Wellbeing data (same source as Settings → Wellbeing).
 
 ## What it does
 
@@ -28,10 +27,35 @@ make enable    # enable the extension
 On Wayland a **logout/login** is required after the first install
 (GNOME Shell cannot be restarted in place).
 
+## Data source
+
+The extension is read-only and uses GNOME's built-in screen time recording.
+gnome-shell writes state transitions (active ↔ idle/locked/suspended) to:
+
+```
+~/.local/share/gnome-shell/session-active-history.json
+```
+
+This is the same file the Wellbeing panel in gnome-control-center reads, so the
+value matches Settings → Wellbeing → Screen Time → Today.
+
+Notes:
+
+- It counts *active* session time (idle, lock and suspend are excluded). There
+  is no per-application breakdown.
+- Recording must be enabled (Settings → Wellbeing). When it is disabled,
+  gnome-shell deletes the file and the panel shows a dash.
+- The day boundary is local midnight. (gnome-shell's own daily-limit accounting
+  resets at 03:00 to survive DST transitions; the value shown here follows the
+  Wellbeing statistics, i.e. midnight.)
+- The path/format is stable for GNOME 47–50; a future shell release could
+  change it.
+
 ## Development
 
 ```sh
 make build     # compile the GSettings schema
+make test      # run the unit tests for the screen time logic (gjs)
 make install   # install into the user profile
 make pack      # build <uuid>.shell-extension.zip
 make uninstall # remove
@@ -43,9 +67,11 @@ Layout:
 ```
 extension.js           entry point: panel button, refresh loop
 prefs.js               preferences window
-src/usageReader.js     screen-time data source (stub)
+src/usageReader.js     reads the gnome-shell history file
+src/screenTime.js      pure parsing/summing logic (unit-tested)
 src/formatTime.js      duration formatting
 schemas/               GSettings schema
+tests/                 gjs unit tests
 ```
 
 ## License
