@@ -1,7 +1,7 @@
 {
   "uuid": "wellbeing-panel@monrus",
   "name": "Wellbeing Panel",
-  "description": "Показывает в верхней панели GNOME экранное время за сегодня, опираясь на встроенные данные Wellbeing / Screen Time.",
+  "description": "Shows today's screen time in the GNOME top panel, backed by the built-in Wellbeing / Screen Time data.",
   "shell-version": ["47", "48", "49", "50"],
   "url": "https://github.com/monrus/gnome-wellbeing-panel",
   "settings-schema": "org.gnome.shell.extensions.wellbeing-panel",

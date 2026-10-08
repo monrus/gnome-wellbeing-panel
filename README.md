@@ -1,53 +1,53 @@
 # Wellbeing Panel
 
-GNOME Shell расширение: показывает в верхней панели экранное время за сегодня,
-опираясь на встроенные данные **Wellbeing / Screen Time**.
+A GNOME Shell extension that shows today's screen time in the top panel,
+backed by the built-in **Wellbeing / Screen Time** data.
 
-> Статус: каркас (v0.1.0). Чтение данных ещё не реализовано — сейчас это
-> заглушка (см. `src/usageReader.js`). Следующий шаг — определить источник
-> данных встроенного Wellbeing и подключить его.
+> Status: scaffold (v0.1.0). Reading the data is not implemented yet — it is
+> currently a stub (see `src/usageReader.js`). The next step is to determine
+> where the built-in Wellbeing gets its data and wire it up.
 
-## Что делает
+## What it does
 
-- Панельная кнопка (слева от часов) с итогом экранного времени за сегодня.
-- Клик — всплывашка со статусом и быстрыми ссылками на настройки.
-- Настройки: показывать значение текстом или только значок; интервал обновления.
+- A panel button (left of the clock) with today's total screen time.
+- Click — a popup with the status and quick links to the settings.
+- Settings: show the value as text or an icon only; refresh interval.
 
-## Требования
+## Requirements
 
-- GNOME Shell 47–50 (цель — 50), Wayland или X11.
-- `glib-compile-schemas` (пакет `libglib2.0-bin`) и `zip` — для сборки.
+- GNOME Shell 47–50 (target: 50), Wayland or X11.
+- `glib-compile-schemas` (package `libglib2.0-bin`) and `zip` — for building.
 
-## Установка
+## Installation
 
 ```sh
-make install   # собрать схему и скопировать в ~/.local/share/gnome-shell/extensions/<uuid>
-make enable    # включить расширение
+make install   # build the schema and copy into ~/.local/share/gnome-shell/extensions/<uuid>
+make enable    # enable the extension
 ```
 
-На Wayland после первой установки нужен **logout/login**
-(перезапустить GNOME Shell на месте нельзя).
+On Wayland a **logout/login** is required after the first install
+(GNOME Shell cannot be restarted in place).
 
-## Разработка
+## Development
 
 ```sh
-make build     # скомпилировать GSettings-схему
-make install   # установить в профиль пользователя
-make pack      # собрать <uuid>.shell-extension.zip
-make uninstall # удалить
+make build     # compile the GSettings schema
+make install   # install into the user profile
+make pack      # build <uuid>.shell-extension.zip
+make uninstall # remove
 make clean
 ```
 
-Структура:
+Layout:
 
 ```
-extension.js           точка входа: панельная кнопка, цикл обновления
-prefs.js               окно настроек
-src/usageReader.js     источник данных об экранном времени (заглушка)
-src/formatTime.js      форматирование длительности
-schemas/               GSettings-схема
+extension.js           entry point: panel button, refresh loop
+prefs.js               preferences window
+src/usageReader.js     screen-time data source (stub)
+src/formatTime.js      duration formatting
+schemas/               GSettings schema
 ```
 
-## Лицензия
+## License
 
-GPL-3.0-or-later. См. `LICENSE`.
+GPL-3.0-or-later. See `LICENSE`.
