@@ -1,9 +1,8 @@
 /*
- * Wellbeing Panel — индикатор экранного времени в верхней панели GNOME.
+ * Wellbeing Panel — a screen time indicator in the GNOME top bar.
  *
- * Источник данных о времени — встроенный Wellbeing / Screen Time.
- * Логика чтения инкапсулирована в src/usageReader.js, разбор и подсчёт —
- * в src/screenTime.js.
+ * The time data comes from the built-in Wellbeing / Screen Time. The reading
+ * logic lives in src/usageReader.js, parsing and summing in src/screenTime.js.
  */
 
 import GLib from 'gi://GLib';
@@ -11,7 +10,7 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 
-import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
@@ -35,38 +34,38 @@ class WellbeingPanelButton extends PanelMenu.Button {
         });
         this.add_child(this._label);
 
-        this._statusItem = new PopupMenu.PopupMenuItem('Экранное время сегодня: —', {
+        this._statusItem = new PopupMenu.PopupMenuItem(_('Screen time today: —'), {
             reactive: false,
         });
         this.menu.addMenuItem(this._statusItem);
 
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        this.menu.addAction('Настройки Wellbeing…', () => {
+        this.menu.addAction(_('Wellbeing Settings…'), () => {
             GLib.spawn_command_line_async('gnome-control-center wellbeing');
         });
-        this.menu.addAction('Настройки расширения…', () => {
+        this.menu.addAction(_('Extension Settings…'), () => {
             this._extension.openPreferences();
         });
     }
 
     refresh() {
         let text = PLACEHOLDER;
-        let statusText = 'Экранное время сегодня: —';
+        let statusText = _('Screen time today: —');
 
         try {
             const {status, seconds} = this._extension.reader.readToday();
 
             if (status === Status.OK && seconds != null) {
-                text = formatDuration(seconds);
-                statusText = `Экранное время сегодня: ${text}`;
+                text = formatDuration(seconds, _);
+                statusText = _('Screen time today: %s').replace('%s', text);
             } else if (status === Status.DISABLED) {
-                statusText = 'Запись экранного времени выключена';
+                statusText = _('Screen time recording is disabled');
             } else {
-                statusText = 'Нет данных об экранном времени';
+                statusText = _('No screen time data');
             }
         } catch (e) {
-            logError(e, 'wellbeing-panel: не удалось прочитать данные');
+            logError(e, 'wellbeing-panel: failed to read screen time data');
         }
 
         const showText = this._extension.settings.get_boolean('show-text');

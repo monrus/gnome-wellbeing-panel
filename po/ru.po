@@ -1,0 +1,93 @@
+# Russian translations for Wellbeing Panel.
+# Copyright (C) 2026 Wellbeing Panel contributors
+# This file is distributed under the same license as the Wellbeing Panel package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: wellbeing-panel\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-08 00:00+0000\n"
+"PO-Revision-Date: 2026-10-08 00:00+0000\n"
+"Last-Translator: Wellbeing Panel contributors\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+#: extension.js
+msgid "Screen time today: —"
+msgstr "Экранное время сегодня: —"
+
+#: extension.js
+msgid "Screen time today: %s"
+msgstr "Экранное время сегодня: %s"
+
+#: extension.js
+msgid "Wellbeing Settings…"
+msgstr "Настройки Wellbeing…"
+
+#: extension.js
+msgid "Extension Settings…"
+msgstr "Настройки расширения…"
+
+#: extension.js
+msgid "Screen time recording is disabled"
+msgstr "Запись экранного времени выключена"
+
+#: extension.js
+msgid "No screen time data"
+msgstr "Нет данных об экранном времени"
+
+#: prefs.js
+msgid "Wellbeing Panel"
+msgstr "Wellbeing Panel"
+
+#: prefs.js
+msgid "Panel"
+msgstr "Панель"
+
+#: prefs.js
+msgid "How the indicator appears in the top bar"
+msgstr "Как отображается индикатор в верхней панели"
+
+#: prefs.js
+msgid "Show time as text"
+msgstr "Показывать время текстом"
+
+#: prefs.js
+msgid "If disabled, only the icon is shown"
+msgstr "Если выключено, отображается только значок"
+
+#: prefs.js
+msgid "Refresh interval"
+msgstr "Интервал обновления"
+
+#: prefs.js
+msgid "Seconds"
+msgstr "Секунды"
+
+#: prefs.js
+msgid "Day boundary"
+msgstr "Границы суток"
+
+#: prefs.js
+msgid "When “today” starts"
+msgstr "С какого момента начинается отсчёт «сегодня»"
+
+#: prefs.js
+msgid "Start hour of the day"
+msgstr "Час начала суток"
+
+#: prefs.js
+msgid "0 — midnight (matches Settings → Wellbeing), 3 — when GNOME resets its daily limit"
+msgstr "0 — полночь (как в Настройки → Wellbeing), 3 — сброс дневного лимита GNOME"
+
+#: src/formatTime.js
+msgid "%d h %s min"
+msgstr "%d ч %s мин"
+
+#: src/formatTime.js
+msgid "%d min"
+msgstr "%d мин"

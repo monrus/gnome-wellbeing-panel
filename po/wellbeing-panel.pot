@@ -1,0 +1,93 @@
+# Wellbeing Panel translations.
+# Copyright (C) 2026 Wellbeing Panel contributors
+# This file is distributed under the same license as the Wellbeing Panel package.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: wellbeing-panel\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-08 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: extension.js
+msgid "Screen time today: —"
+msgstr ""
+
+#: extension.js
+msgid "Screen time today: %s"
+msgstr ""
+
+#: extension.js
+msgid "Wellbeing Settings…"
+msgstr ""
+
+#: extension.js
+msgid "Extension Settings…"
+msgstr ""
+
+#: extension.js
+msgid "Screen time recording is disabled"
+msgstr ""
+
+#: extension.js
+msgid "No screen time data"
+msgstr ""
+
+#: prefs.js
+msgid "Wellbeing Panel"
+msgstr ""
+
+#: prefs.js
+msgid "Panel"
+msgstr ""
+
+#: prefs.js
+msgid "How the indicator appears in the top bar"
+msgstr ""
+
+#: prefs.js
+msgid "Show time as text"
+msgstr ""
+
+#: prefs.js
+msgid "If disabled, only the icon is shown"
+msgstr ""
+
+#: prefs.js
+msgid "Refresh interval"
+msgstr ""
+
+#: prefs.js
+msgid "Seconds"
+msgstr ""
+
+#: prefs.js
+msgid "Day boundary"
+msgstr ""
+
+#: prefs.js
+msgid "When “today” starts"
+msgstr ""
+
+#: prefs.js
+msgid "Start hour of the day"
+msgstr ""
+
+#: prefs.js
+msgid "0 — midnight (matches Settings → Wellbeing), 3 — when GNOME resets its daily limit"
+msgstr ""
+
+#: src/formatTime.js
+msgid "%d h %s min"
+msgstr ""
+
+#: src/formatTime.js
+msgid "%d min"
+msgstr ""

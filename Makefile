@@ -1,6 +1,6 @@
-# Wellbeing Panel — сборка и установка GNOME Shell расширения.
+# Wellbeing Panel — build and install for the GNOME Shell extension.
 #
-# Используем .RECIPEPREFIX, чтобы не зависеть от символов табуляции.
+# We use .RECIPEPREFIX so the recipes do not depend on tab characters.
 .RECIPEPREFIX := >
 
 UUID := wellbeing-panel@monrus
@@ -12,10 +12,18 @@ SCHEMA_COMPILED := $(SCHEMA_DIR)/gschemas.compiled
 EXTENSION_ROOT := $(HOME)/.local/share/gnome-shell/extensions
 EXTENSION_DIR := $(EXTENSION_ROOT)/$(UUID)
 
-# Что попадает в поставку расширения.
+# What goes into the extension package.
 SOURCES := metadata.json extension.js prefs.js stylesheet.css src
 
-.PHONY: all build schemas test install uninstall enable disable pack clean
+# i18n (gettext)
+DOMAIN := wellbeing-panel
+PO_DIR := po
+LOCALE_DIR := locale
+POT := $(PO_DIR)/$(DOMAIN).pot
+LINGUAS := $(patsubst $(PO_DIR)/%.po,%,$(wildcard $(PO_DIR)/*.po))
+TRANSLATABLE := extension.js prefs.js src/formatTime.js
+
+.PHONY: all build schemas test pot update-po translations install uninstall enable disable pack clean
 
 all: build
 
@@ -25,15 +33,35 @@ schemas:
 > glib-compile-schemas --strict $(SCHEMA_DIR)
 
 test:
-> gjs -m tests/screenTime.test.js
+> @for t in tests/*.test.js; do echo "== $$t"; gjs -m "$$t" || exit 1; done
 
-install: build
+# Extract strings into the .pot (requires xgettext from the gettext package).
+pot:
+> xgettext --from-code=UTF-8 --output=$(POT) --package-name="Wellbeing Panel" \
+>   --keyword=_ --keyword=N_ --keyword=ngettext:1,2 --keyword=pgettext:1c,2 \
+>   $(TRANSLATABLE)
+
+# Merge new strings from the .pot into the existing translations.
+update-po: pot
+> @for l in $(LINGUAS); do \
+>   msgmerge --update --backup=none $(PO_DIR)/$$l.po $(POT); \
+> done
+
+# Compile translations into locale/<lang>/LC_MESSAGES/<domain>.mo (requires msgfmt).
+translations:
+> @for l in $(LINGUAS); do \
+>   mkdir -p $(LOCALE_DIR)/$$l/LC_MESSAGES; \
+>   msgfmt -c -o $(LOCALE_DIR)/$$l/LC_MESSAGES/$(DOMAIN).mo $(PO_DIR)/$$l.po || exit 1; \
+> done
+
+install: build translations
 > rm -rf $(EXTENSION_DIR)
 > mkdir -p $(EXTENSION_DIR)/schemas
 > cp -r $(SOURCES) $(EXTENSION_DIR)/
 > cp $(SCHEMA_XML) $(SCHEMA_COMPILED) $(EXTENSION_DIR)/schemas/
-> @echo "Установлено в $(EXTENSION_DIR)"
-> @echo "Включите (и перелогиньтесь на Wayland): make enable"
+> @if [ -d $(LOCALE_DIR) ]; then cp -r $(LOCALE_DIR) $(EXTENSION_DIR)/; fi
+> @echo "Installed to $(EXTENSION_DIR)"
+> @echo "Enable it (and log out/in on Wayland): make enable"
 
 enable:
 > gnome-extensions enable $(UUID)
@@ -45,14 +73,16 @@ uninstall:
 > -gnome-extensions uninstall $(UUID)
 > rm -rf $(EXTENSION_DIR)
 
-pack: build
+pack: build translations
 > @tmp=$$(mktemp -d); \
 > mkdir -p $$tmp/$(UUID)/schemas; \
 > cp -r $(SOURCES) $$tmp/$(UUID)/; \
 > cp $(SCHEMA_XML) $(SCHEMA_COMPILED) $$tmp/$(UUID)/schemas/; \
+> if [ -d $(LOCALE_DIR) ]; then cp -r $(LOCALE_DIR) $$tmp/$(UUID)/; fi; \
 > (cd $$tmp && zip -qr $(CURDIR)/$(UUID).shell-extension.zip $(UUID)); \
 > rm -rf $$tmp; \
-> echo "Собрано: $(UUID).shell-extension.zip"
+> echo "Built: $(UUID).shell-extension.zip"
 
 clean:
 > rm -f $(SCHEMA_COMPILED) $(UUID).shell-extension.zip
+> rm -rf $(LOCALE_DIR)

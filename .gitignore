@@ -1,12 +1,14 @@
-# Сборка
+# Build
 *.shell-extension.zip
 schemas/gschemas.compiled
+locale/
 
-# IDE / редакторы
+# IDE / editors
 .idea/
 .vscode/
 *.swp
 
-# Прочее
+# Misc
 *~
 .DS_Store
+.npm-cache/

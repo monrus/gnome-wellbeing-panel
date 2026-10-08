@@ -1,27 +1,27 @@
 /*
- * Источник данных об экранном времени.
+ * Screen time data source.
  *
- * Читает файл истории, который пишет gnome-shell и читает gnome-control-center
- * (панель Wellbeing):
+ * Reads the history file written by gnome-shell and read by gnome-control-center
+ * (the Wellbeing panel):
  *   ~/.local/share/gnome-shell/session-active-history.json
  *
- * Файл содержит переходы состояния активности пользователя (idle/локировка/
- * suspend ↔ активность). Разбивки по приложениям нет — это суммарное активное
- * экранное время, как в Настройки → Wellbeing.
+ * The file contains user activity state transitions (idle/lock/suspend <->
+ * active). There is no per-application breakdown — this is the total active
+ * screen time, like in Settings -> Wellbeing.
  *
- * Разбор и подсчёт вынесены в ./screenTime.js (чистая логика, тестируемая в gjs).
+ * Parsing and summing live in ./screenTime.js (pure logic, testable under gjs).
  */
 
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
-import {parseHistory, sumActiveSeconds} from './screenTime.js';
+import {parseHistory, sumActiveSeconds, startOfDaySecs} from './screenTime.js';
 
 const SCREEN_TIME_LIMITS_SCHEMA = 'org.gnome.desktop.screen-time-limits';
 const HISTORY_DIR = 'gnome-shell';
 const HISTORY_FILENAME = 'session-active-history.json';
 
-/** Возможные исходы чтения. */
+/** Possible read outcomes. */
 export const Status = {
     OK: 'ok',
     DISABLED: 'disabled',
@@ -37,7 +37,7 @@ export class UsageReader {
         try {
             this._screenTimeLimits = Gio.Settings.new(SCREEN_TIME_LIMITS_SCHEMA);
         } catch (e) {
-            log(`wellbeing-panel: схема ${SCREEN_TIME_LIMITS_SCHEMA} недоступна: ${e.message}`);
+            log(`wellbeing-panel: schema ${SCREEN_TIME_LIMITS_SCHEMA} is unavailable: ${e.message}`);
         }
 
         this._historyFile = Gio.File.new_for_path(
@@ -45,10 +45,10 @@ export class UsageReader {
     }
 
     /**
-     * Прочитать суммарное экранное время за сегодня.
+     * Read the total screen time for today.
      *
-     * @returns {{status: string, seconds: number|null}} status — одно из
-     *   Status.*; seconds — секунды активности за сегодня (только при OK).
+     * @returns {{status: string, seconds: number|null}} status is one of
+     *   Status.*; seconds is the activity seconds for today (only when OK).
      */
     readToday() {
         if (this._screenTimeLimits &&
@@ -60,8 +60,8 @@ export class UsageReader {
             const [, bytes] = this._historyFile.load_contents(null);
             text = new TextDecoder().decode(bytes);
         } catch (e) {
-            // Файла нет / нет доступа: на новой системе данных ещё не накопилось,
-            // либо запись выключена. Это не ошибка — просто нет данных.
+            // File missing / not accessible: a fresh system has no data yet, or
+            // recording is disabled. Not an error — simply no data.
             return {status: Status.UNAVAILABLE, seconds: null};
         }
 
@@ -69,25 +69,18 @@ export class UsageReader {
         const entries = parseHistory(text, nowSecs);
 
         if (entries === null || entries.length === 0) {
-            this._warnOnce('не удалось разобрать файл истории экранного времени');
+            this._warnOnce('failed to parse the screen time history file');
             return {status: Status.UNAVAILABLE, seconds: null};
         }
 
-        const startOfTodaySecs = this._startOfTodaySecs(nowSecs);
+        const dayStartHour = this._settings ? this._settings.get_uint('day-start-hour') : 0;
+        const startOfTodaySecs = startOfDaySecs(nowSecs, dayStartHour);
         const seconds = sumActiveSeconds(entries, startOfTodaySecs, nowSecs);
 
         return {status: Status.OK, seconds};
     }
 
-    /** Начало сегодняшнего дня (локальная полночь) в секундах Unix epoch. */
-    _startOfTodaySecs(nowSecs) {
-        const now = GLib.DateTime.new_from_unix_local(nowSecs);
-        const midnight = GLib.DateTime.new_local(
-            now.get_year(), now.get_month(), now.get_day_of_month(), 0, 0, 0);
-        return midnight.to_unix();
-    }
-
-    /** Предупреждаем об ошибке один раз, чтобы не засорять журнал каждые 30 с. */
+    /** Warn about an error once, to avoid flooding the journal every 30 s. */
     _warnOnce(message) {
         if (this._warned)
             return;

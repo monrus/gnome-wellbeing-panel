@@ -1,35 +1,61 @@
 /*
- * Чистая логика разбора истории экранного времени GNOME.
+ * Pure parsing/summing logic for GNOME screen time history.
  *
- * Источник — файл ~/.local/share/gnome-shell/session-active-history.json,
- * который пишет gnome-shell (js/misc/timeLimitsManager.js) и читает
- * gnome-control-center (панель Wellbeing).
+ * Source: ~/.local/share/gnome-shell/session-active-history.json, written by
+ * gnome-shell (js/misc/timeLimitsManager.js) and read by gnome-control-center
+ * (the Wellbeing panel).
  *
- * Формат: массив переходов состояния активности пользователя
+ * Format: an array of user activity state transitions
  *   [{oldState, newState, wallTimeSecs}, ...]
- * где UserState: 0 = INACTIVE, 1 = ACTIVE; wallTimeSecs — секунды Unix epoch.
+ * where UserState is 0 = INACTIVE, 1 = ACTIVE; wallTimeSecs is seconds since
+ * the Unix epoch.
  *
- * Алгоритм подсчёта повторяет gnome-shell
+ * The summing algorithm mirrors gnome-shell
  * TimeLimitsManager._calculateActiveTimeTodaySecs().
  *
- * Модуль намеренно не зависит от GNOME Shell — его можно запускать в gjs
- * и тестировать (см. tests/screenTime.test.js).
+ * This module deliberately does not depend on GNOME Shell, so it can run under
+ * gjs and be unit-tested (see tests/screenTime.test.js).
  */
 
-/** Состояние пользователя. Значения зафиксированы форматом файла. */
+import GLib from 'gi://GLib';
+
+/** User state. The values are fixed by the on-disk file format. */
 export const USER_STATE = {
     INACTIVE: 0,
     ACTIVE: 1,
 };
 
 /**
- * Разобрать и провалидировать историю переходов.
+ * Start of the current day, in seconds since the Unix epoch, for a given start
+ * hour.
  *
- * @param {string} text содержимое history-файла
- * @param {number|null} nowSecs текущее время в секундах; переходы из будущего
- *   (больше nowSecs) отбрасываются. Если null — проверка не выполняется.
+ * Computed in local time (system time zone); DST transitions are handled by
+ * GLib. If the chosen hour has not occurred yet today, the corresponding time
+ * on the previous day is returned.
+ *
+ * @param {number} nowSecs current time, seconds since the Unix epoch
+ * @param {number} dayStartHour day start hour, 0–23 (0 = midnight)
+ * @returns {number} seconds since the Unix epoch at the start of the current day
+ */
+export function startOfDaySecs(nowSecs, dayStartHour = 0) {
+    const now = GLib.DateTime.new_from_unix_local(nowSecs);
+    let start = GLib.DateTime.new_local(
+        now.get_year(), now.get_month(), now.get_day_of_month(), dayStartHour, 0, 0);
+
+    if (now.compare(start) < 0)
+        start = start.add_days(-1);
+
+    return start.to_unix();
+}
+
+/**
+ * Parse and validate the transition history.
+ *
+ * @param {string} text contents of the history file
+ * @param {number|null} nowSecs current time in seconds; transitions from the
+ *   future (greater than nowSecs) are dropped. Unset means: do not check.
  * @returns {Array<{oldState:number,newState:number,wallTimeSecs:number}>|null}
- *   массив валидных переходов, либо null, если файл структурно некорректен.
+ *   array of valid transitions, or null if the file is structurally invalid.
  */
 export function parseHistory(text, nowSecs = null) {
     let raw;
@@ -62,7 +88,7 @@ export function parseHistory(text, nowSecs = null) {
         if (wallTimeSecs < prevWallTimeSecs)
             return null;
 
-        // Будущие переходы — следствие сбоя часов; пропускаем, как gnome-shell.
+        // Future transitions come from clock skew; skip them, like gnome-shell.
         if (nowSecs !== null && wallTimeSecs > nowSecs)
             continue;
 
@@ -74,22 +100,22 @@ export function parseHistory(text, nowSecs = null) {
 }
 
 /**
- * Сколько секунд пользователь был активен в интервале [rangeStart, rangeEnd).
+ * How many seconds the user was active within [rangeStart, rangeEnd).
  *
- * Повторяет gnome-shell TimeLimitsManager._calculateActiveTimeTodaySecs():
- * идём по переходам, при переходе в ACTIVE запоминаем начало, при переходе
- * из ACTIVE суммируем длительность; если последний переход — в ACTIVE,
- * добавляем всё до rangeEnd.
+ * Mirrors gnome-shell TimeLimitsManager._calculateActiveTimeTodaySecs(): walk
+ * the transitions, remember the start on a transition into ACTIVE, and add the
+ * duration on a transition out of ACTIVE; if the last transition is into
+ * ACTIVE, add everything up to rangeEnd.
  *
  * @param {Array<{oldState:number,newState:number,wallTimeSecs:number}>} entries
- * @param {number} rangeStartSecs начало интервала (включительно)
- * @param {number} rangeEndSecs конец интервала (исключительно)
- * @returns {number} секунды активности
+ * @param {number} rangeStartSecs start of the range (inclusive)
+ * @param {number} rangeEndSecs end of the range (exclusive)
+ * @returns {number} seconds of activity
  */
 export function sumActiveSeconds(entries, rangeStartSecs, rangeEndSecs) {
     let total = 0;
-    // Если первый переход в диапазоне — ACTIVE→INACTIVE, значит активность
-    // началась до диапазона (или он пуст), поэтому старт берём с его начала.
+    // If the first transition in the range is ACTIVE->INACTIVE, activity began
+    // before the range (or the range is empty), so start counting from its start.
     let activeStartSecs = rangeStartSecs;
 
     const firstIdx = entries.findIndex(e => e.wallTimeSecs >= rangeStartSecs);

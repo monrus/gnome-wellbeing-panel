@@ -6,18 +6,29 @@
 
     <key name="show-text" type="b">
       <default>true</default>
-      <summary>Показывать время текстом</summary>
+      <summary>Show time as text</summary>
       <description>
-        Если выключено, в панели отображается только значок, без числового
-        значения экранного времени.
+        If disabled, only the icon is shown in the panel, without the numeric
+        screen time value.
       </description>
     </key>
 
     <key name="refresh-interval" type="u">
       <default>30</default>
-      <summary>Интервал обновления</summary>
+      <summary>Refresh interval</summary>
       <description>
-        Как часто обновлять показания индикатора, в секундах.
+        How often to refresh the indicator, in seconds.
+      </description>
+    </key>
+
+    <key name="day-start-hour" type="u">
+      <default>0</default>
+      <range min="0" max="23"/>
+      <summary>Start hour of the day</summary>
+      <description>
+        Local-time hour (0–23) at which "today" starts.
+        0 is midnight (matches the Wellbeing statistics in Settings),
+        3 is when gnome-shell resets its daily limit.
       </description>
     </key>
 

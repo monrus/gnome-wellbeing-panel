@@ -10,12 +10,14 @@ backed by the built-in **Wellbeing / Screen Time** data.
 
 - A panel button (left of the clock) with today's total screen time.
 - Click — a popup with the status and quick links to the settings.
-- Settings: show the value as text or an icon only; refresh interval.
+- Settings: show the value as text or an icon only; refresh interval; the hour
+  at which the day starts.
 
 ## Requirements
 
 - GNOME Shell 47–50 (target: 50), Wayland or X11.
 - `glib-compile-schemas` (package `libglib2.0-bin`) and `zip` — for building.
+- `gettext` (`xgettext`, `msgfmt`) — for building translations.
 
 ## Installation
 
@@ -45,11 +47,26 @@ Notes:
   is no per-application breakdown.
 - Recording must be enabled (Settings → Wellbeing). When it is disabled,
   gnome-shell deletes the file and the panel shows a dash.
-- The day boundary is local midnight. (gnome-shell's own daily-limit accounting
-  resets at 03:00 to survive DST transitions; the value shown here follows the
-  Wellbeing statistics, i.e. midnight.)
+- The day boundary is configurable (Settings of the extension → Day boundary →
+  Start hour of the day), local time. The default `0` (midnight) matches the
+  Wellbeing statistics. Set it to `3` to line up with gnome-shell's daily-limit
+  reset (gnome-shell resets at 03:00 to survive DST transitions).
 - The path/format is stable for GNOME 47–50; a future shell release could
   change it.
+
+## Translations
+
+UI strings use gettext (`gettext-domain: wellbeing-panel` in `metadata.json`).
+Source strings are **English**; Russian lives in `po/ru.po`.
+
+```sh
+make pot            # extract strings into po/wellbeing-panel.pot (xgettext)
+make update-po      # merge new strings into po/*.po (msgmerge)
+make translations   # compile po/*.po into locale/<lang>/LC_MESSAGES/*.mo (msgfmt)
+```
+
+`make install` and `make pack` run `make translations` and bundle `locale/`
+(the shell loads translations from the extension's own `locale/`).
 
 ## Development
 
