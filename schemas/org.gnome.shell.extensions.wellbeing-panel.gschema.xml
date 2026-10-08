@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="wellbeing-panel">
+
+  <schema id="org.gnome.shell.extensions.wellbeing-panel"
+          path="/org/gnome/shell/extensions/wellbeing-panel/">
+
+    <key name="show-text" type="b">
+      <default>true</default>
+      <summary>Показывать время текстом</summary>
+      <description>
+        Если выключено, в панели отображается только значок, без числового
+        значения экранного времени.
+      </description>
+    </key>
+
+    <key name="refresh-interval" type="u">
+      <default>30</default>
+      <summary>Интервал обновления</summary>
+      <description>
+        Как часто обновлять показания индикатора, в секундах.
+      </description>
+    </key>
+
+  </schema>
+
+</schemalist>

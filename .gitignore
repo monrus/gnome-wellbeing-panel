@@ -1,0 +1,12 @@
+# Сборка
+*.shell-extension.zip
+schemas/gschemas.compiled
+
+# IDE / редакторы
+.idea/
+.vscode/
+*.swp
+
+# Прочее
+*~
+.DS_Store
