@@ -47,12 +47,19 @@ update-po: pot
 >   msgmerge --update --backup=none $(PO_DIR)/$$l.po $(POT); \
 > done
 
-# Compile translations into locale/<lang>/LC_MESSAGES/<domain>.mo (requires msgfmt).
+# Compile translations into locale/<lang>/LC_MESSAGES/<domain>.mo (needs msgfmt).
+# Optional: if msgfmt (gettext) is missing, warn and continue with English only.
 translations:
-> @for l in $(LINGUAS); do \
->   mkdir -p $(LOCALE_DIR)/$$l/LC_MESSAGES; \
->   msgfmt -c -o $(LOCALE_DIR)/$$l/LC_MESSAGES/$(DOMAIN).mo $(PO_DIR)/$$l.po || exit 1; \
-> done
+> @if [ -n "$(LINGUAS)" ]; then \
+>   if command -v msgfmt >/dev/null 2>&1; then \
+>     for l in $(LINGUAS); do \
+>       mkdir -p $(LOCALE_DIR)/$$l/LC_MESSAGES; \
+>       msgfmt -c -o $(LOCALE_DIR)/$$l/LC_MESSAGES/$(DOMAIN).mo $(PO_DIR)/$$l.po || exit 1; \
+>     done; \
+>   else \
+>     echo "msgfmt not found (install gettext); skipping translations"; \
+>   fi; \
+> fi
 
 install: build translations
 > rm -rf $(EXTENSION_DIR)
